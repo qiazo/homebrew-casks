@@ -1,7 +1,8 @@
 # Homebrew Casks
 
 [![Test](https://github.com/qiazo/homebrew-casks/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/qiazo/homebrew-casks/actions/workflows/test.yml)
-[![Excavator](https://github.com/qiazo/homebrew-casks/actions/workflows/excavator.yml/badge.svg)](https://github.com/qiazo/homebrew-casks/actions/workflows/excavator.yml)
+[![Release PG](https://github.com/qiazo/homebrew-casks/actions/workflows/release-pg.yml/badge.svg)](https://github.com/qiazo/homebrew-casks/actions/workflows/release-pg.yml)
+[![Release FR](https://github.com/qiazo/homebrew-casks/actions/workflows/release-fr.yml/badge.svg)](https://github.com/qiazo/homebrew-casks/actions/workflows/release-fr.yml)
 
 ## Casks
 

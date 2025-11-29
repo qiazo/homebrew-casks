@@ -1,0 +1,68 @@
+name: Release FR
+
+on:
+  workflow_dispatch:
+  schedule:
+    # At minute 30 past every 4th hour.
+    - cron: '30 */4 * * *'
+
+permissions:
+  # Give the default GITHUB_TOKEN write permission to commit and push the
+  # added or changed files to the repository.
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Update casks
+        shell: sh
+        run: |
+          LATEST_VERSION=$(curl -H "Authorization: Bearer ${{ secrets.FR_RELEASE_TOKEN }}" -s "https://api.github.com/repos/fafarunner/fafarunner/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
+          LATEST_SHA=$(curl -H "Authorization: Bearer ${{ secrets.FR_RELEASE_TOKEN }}" -sL "https://github.com/fafarunner/fafarunner/releases/download/v${LATEST_VERSION}/FaFaRunner-${LATEST_VERSION}-macos-universal.dmg" | sha256sum | cut -f 1 -d " ")
+          
+          echo "Latest release: $LATEST_VERSION"
+          echo "Latest SHA: $LATEST_SHA"
+          
+          sed -i '' "s/version .*/version \"${LATEST_VERSION}\"/" Casks/fafarunner.rb
+          sed -i '' "s/sha256 .*/sha256 \"${LATEST_SHA}\"/" Casks/fafarunner.rb
+          
+          echo "LATEST_VERSION=$LATEST_VERSION" >> "$GITHUB_ENV"
+
+      - name: Commit and push changes
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: Update fafarunner cask to v${{ env.LATEST_VERSION }}
+          commit_options: '--no-verify --signoff'
+          commit_user_name: kjxbyz # defaults to "github-actions[bot]"
+          commit_user_email: 47768002+kjxbyz@users.noreply.github.com # defaults to "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Optional. Option used by `git-status` to determine if the repository is
+          # dirty. See https://git-scm.com/docs/git-status#_options
+          status_options: '--untracked-files=no'
+
+          # Optional. Options used by `git-add`.
+          # See https://git-scm.com/docs/git-add#_options
+          add_options: '-u'
+
+          # Optional. Options used by `git-push`.
+          # See https://git-scm.com/docs/git-push#_options
+          push_options: '--force'
+
+          # Optional. Disable dirty check and always try to create a commit and push
+          skip_dirty_check: false
+
+          # Optional. Skip internal call to `git fetch`
+          skip_fetch: false
+
+          # Optional. Skip internal call to `git checkout`
+          skip_checkout: true
+
+          # Optional. Prevents the shell from expanding filenames.
+          # Details: https://www.gnu.org/software/bash/manual/html_node/Filename-Expansion.html
+          disable_globbing: true
+
+          # Optional. Create given branch name in local and remote repository.
+          create_branch: false
