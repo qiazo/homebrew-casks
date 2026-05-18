@@ -2,9 +2,6 @@ name: Release FR
 
 on:
   workflow_dispatch:
-  schedule:
-    # At minute 30 past every 4th hour.
-    - cron: '30 */4 * * *'
 
 permissions:
   # Give the default GITHUB_TOKEN write permission to commit and push the
@@ -22,13 +19,19 @@ jobs:
         run: |
           LATEST_VERSION=$(curl -H "Authorization: Bearer ${{ secrets.FR_RELEASE_TOKEN }}" -s "https://api.github.com/repos/fafarunner/fafarunner/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
           LATEST_SHA=$(curl -H "Authorization: Bearer ${{ secrets.FR_RELEASE_TOKEN }}" -sL "https://github.com/fafarunner/fafarunner/releases/download/v${LATEST_VERSION}/FaFaRunner-${LATEST_VERSION}-macos-universal.dmg" | sha256sum | cut -f 1 -d " ")
-          
+
           echo "Latest release: $LATEST_VERSION"
           echo "Latest SHA: $LATEST_SHA"
-          
+
+          # 检查 LATEST_VERSION 是否为空
+          if [ -z "$LATEST_VERSION" ]; then
+            echo "错误: LATEST_VERSION 为空, 脚本退出!"
+            exit 1
+          fi
+
           sed -i '' "s/version .*/version \"${LATEST_VERSION}\"/" Casks/fafarunner.rb
           sed -i '' "s/sha256 .*/sha256 \"${LATEST_SHA}\"/" Casks/fafarunner.rb
-          
+
           echo "LATEST_VERSION=$LATEST_VERSION" >> "$GITHUB_ENV"
 
       - name: Commit and push changes
